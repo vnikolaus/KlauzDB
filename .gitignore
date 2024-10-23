@@ -1,0 +1,7 @@
+/node_modules
+/tests
+lib
+package-lock.json
+package.json
+tsconfig.json
+.env
