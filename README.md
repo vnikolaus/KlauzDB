@@ -186,7 +186,7 @@ collection.findAll(options?)
 ```
 
 #### Parâmetros
-`optionsFindAll.hideInfo:` *opcional*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
+`optionsFindAll.hideInfo:` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
 
 #### Retorno
 Todos os objetos persistidos na Collection;
