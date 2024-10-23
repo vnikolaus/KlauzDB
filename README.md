@@ -210,6 +210,7 @@ collection.addMany([
 
 // Sem hideInfo
 const output1 = collection.findAll()
+
 console.log("output1", output1);
 // Resultado:
     [
@@ -231,6 +232,7 @@ console.log("output1", output1);
 const output2 = collection.findAll({
     hideInfo: ['admin'] // Esconde as informações indicadas do retorno;
 })
+
 console.log("output2", output2);
 // Resultado:
     [
@@ -287,10 +289,30 @@ collection.addMany([
 
 // Consultando dados
 
-const output1 = collection.find({
+//Syntax Javascript antiga
+const outputAntigo = collection.find({
+    where: function(obj) {
+        if (obj.admin === true) {
+            return obj
+        }
+    }
+})
+
+//Syntax Javascript moderna (recomendado)
+const outputModerno = collection.find({
     where: obj => obj.admin === true
 })
-console.log("output1", output1);
+
+// Syntax Typescript:
+// Utiliza Generics para habilitar a tipagem dos objetos, incluindo a propriedade '_zid' como padrão.
+type User = { nome: string, admin: boolean };
+const outputTypescript = collection.find<User>({
+    where: obj => obj.admin === true
+})
+
+console.log("outputAntigo", outputAntigo);
+console.log("outputModerno", outputModerno);
+console.log("outputTypescript", outputTypescript);
 // Resultado:
     [
         {
@@ -301,11 +323,11 @@ console.log("output1", output1);
     ]
 //
 
-
-const output2 = collection.find({
+const output1 = collection.find({
     where: obj => obj._zid > 2
 })
-console.log("output2", output2);
+
+console.log("output1", output1);
 // Resultado:
     [
         {
@@ -316,12 +338,12 @@ console.log("output2", output2);
     ]
 //
 
-
-const output3 = collection.find({
+const output2 = collection.find({
     where: obj => obj.admin === false,
     hideInfo: ['admin', '_zid']
 })
-console.log("output3", output3);
+
+console.log("output2", output2);
 // Resultado:
     [
         {
@@ -371,34 +393,23 @@ collection.addMany([
 
 // Alterando dados
 
-// Syntax JavaScript antiga:
-const output = collection.update({
-    where: function(obj) {
-        if (obj.nome === 'User_1') {
-            return obj
-        }
-    },
-    values: { admin: true }
-})
-
-
-// Syntax JavaScript moderna:
-const output = collection.update({
+// JavaScript:
+const output1 = collection.update({
     where: obj => obj.nome === 'User_1',
     values: { admin: true }
 })
 
 
-// Syntax Typescript:
-// Utiliza Generics para habilitar a tipagem dos objetos, incluindo a propriedade '_zid' como padrão.
+// Typescript:
 type User = { nome: string, admin: boolean }
-const output = collection.update<User>({
+const output2 = collection.update<User>({
     where: (obj) => obj._zid === 1,
     values: { admin: true }
 })
 
 
-console.log("output: ", output);
+console.log("output1: ", output1);
+console.log("output2: ", output2);
 // Em todos os exemplos o output segue o mesmo:
     [
         {
@@ -450,24 +461,13 @@ collection.addMany([
 
 // Deletando dados
 
-// Syntax JavaScript antiga:
-collection.delete({
-    where: function(obj) {
-        if (obj.nome === 'User_1') {
-            return obj
-        }
-    }
-})
-
-
-// Syntax JavaScript moderna:
+// JavaScript:
 collection.delete({
     where: obj => obj.nome === 'User_1'
 })
 
 
-// Syntax Typescript:
-// Utiliza Generics para habilitar a tipagem dos objetos, incluindo a propriedade '_zid' como padrão.
+// Typescript:
 type User = { nome: string, admin: boolean };
 collection.delete<User>({
     where: obj => obj.nome === 'User_1'
