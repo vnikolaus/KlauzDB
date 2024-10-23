@@ -186,7 +186,7 @@ collection.findAll(optionsFindAll?)
 ```
 
 #### Parâmetros
-`optionsFindAll.hideInfo:` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
+`optionsFindAll.hideInfo: Array<string>` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
 
 #### Retorno
 Todos os objetos persistidos na Collection;
@@ -260,8 +260,8 @@ collection.find(optionsFind)
 ```
 
 #### Parâmetros
-`optionsFind.where:` *(obrigatório)*<br><br>Função callback que recebe como parâmetro os objetos contidos na Collection.<br>Seu retorno deve ser os objetos que serão consultados;<br><br>
-`optionsFind.hideInfo:` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
+`optionsFind.where: function(obj) {}` *(obrigatório)*<br><br>Função callback que recebe como parâmetro os objetos contidos na Collection.<br>Seu retorno deve ser os objetos que serão consultados;<br><br>
+`optionsFind.hideInfo: Array<string>` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
 
 #### Retorno
 Objetos persistidos na Collection;
