@@ -248,7 +248,7 @@ console.log("output2", output2);
 <br>
 
 ### find
-Retorna dados contidos na Collection, de acordo com a condição informada.
+Retorna dados especificos que estão contidos na Collection.
 
 #### Syntax
 ```js
