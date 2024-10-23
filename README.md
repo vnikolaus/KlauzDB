@@ -416,11 +416,6 @@ console.log("output2: ", output2);
             "nome": "User_1",
             "admin": true,
             "_zid": 1
-        },
-        {
-            "nome": "User_2",
-            "admin": false,
-            "_zid": 2
         }
     ]
 //
