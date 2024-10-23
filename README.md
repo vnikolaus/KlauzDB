@@ -54,7 +54,7 @@ KlauzDB expõe apenas uma função:
 * `createCollection`
 
 ### createCollection()
-Habilita uma nova instância Collection, e cria seu arquivo json para persistência de dados.
+Habilita uma nova instância Collection, e cria seu arquivo .json para persistência dos dados.
 
 #### Syntax
 ```js
@@ -290,7 +290,7 @@ collection.addMany([
 // Consultando dados
 
 //Syntax Javascript antiga
-const outputAntigo = collection.find({
+const antigo = collection.find({
     where: function(obj) {
         if (obj.admin === true) {
             return obj
@@ -299,21 +299,21 @@ const outputAntigo = collection.find({
 })
 
 //Syntax Javascript moderna (recomendado)
-const outputModerno = collection.find({
+const moderno = collection.find({
     where: obj => obj.admin === true
 })
 
 // Syntax Typescript:
 // Utiliza Generics para habilitar a tipagem dos objetos, incluindo a propriedade '_zid' como padrão.
 type User = { nome: string, admin: boolean };
-const outputTypescript = collection.find<User>({
+const typescript = collection.find<User>({
     where: obj => obj.admin === true
 })
 
-console.log("outputAntigo", outputAntigo);
-console.log("outputModerno", outputModerno);
-console.log("outputTypescript", outputTypescript);
-// Resultado:
+console.log("antigo", antigo);
+console.log("moderno", moderno);
+console.log("typescript", typescript);
+// Em todos os exemplos o resultado segue o mesmo:
     [
         {
             "nome": "User_1",
