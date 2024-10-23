@@ -450,6 +450,10 @@ collection.addMany([
     {
         nome: 'User_2',
         admin: false
+    },
+    {
+        nome: 'User_3',
+        admin: false
     }
 ])
 
@@ -476,6 +480,11 @@ console.log("collection.findAll(): ", collection.findAll());
             "nome": "User_2",
             "admin": false,
             "_zid": 2
+        },
+        {
+            "nome": "User_3",
+            "admin": false,
+            "_zid": 3
         }
     ]
 //
