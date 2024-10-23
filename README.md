@@ -182,7 +182,7 @@ Retorna todos os dados contidos dentro da Collection.
 const optionsFindAll = {
     hideInfo: Array<string>
 }
-collection.findAll(options?)
+collection.findAll(optionsFindAll?)
 ```
 
 #### Parâmetros
@@ -241,6 +241,94 @@ console.log("output2", output2);
         {
             "nome": "User_2",
             "_zid": 2
+        }
+    ]
+//
+```
+<br>
+
+### find
+Retorna dados contidos na Collection, de acordo com a condição informada.
+
+#### Syntax
+```js
+const optionsFind = {
+    where: (obj) => {},
+    hideInfo?: Array<string>
+}
+collection.find(optionsFind)
+```
+
+#### Parâmetros
+`optionsFind.where:` *(obrigatório)*<br><br>Função callback que recebe como parâmetro os objetos contidos na Collection.<br>Seu retorno deve ser os objetos que serão consultados;<br><br>
+`optionsFind.hideInfo:` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
+
+#### Retorno
+Objetos persistidos na Collection;
+
+#### Exemplo
+```js
+// Adicionando dados
+collection.addMany([
+    {
+        nome: 'User_1',
+        admin: true
+    },
+    {
+        nome: 'User_2',
+        admin: false
+    },
+        {
+        nome: 'User_3',
+        admin: false
+    }
+])
+
+
+// Consultando dados
+
+const output1 = collection.find({
+    where: obj => obj.admin === true
+})
+console.log("output1", output1);
+// Resultado:
+    [
+        {
+            "nome": "User_1",
+            "admin": true,
+            "_zid": 1
+        }
+    ]
+//
+
+
+const output2 = collection.find({
+    where: obj => obj._zid > 2
+})
+console.log("output2", output2);
+// Resultado:
+    [
+        {
+            "nome": "User_3",
+            "admin": false,
+            "_zid": 3
+        }
+    ]
+//
+
+
+const output3 = collection.find({
+    where: obj => obj.admin === false,
+    hideInfo: ['admin', '_zid']
+})
+console.log("output3", output3);
+// Resultado:
+    [
+        {
+            "nome": "User_2",
+        },
+        {
+            "nome": "User_3",
         }
     ]
 //
