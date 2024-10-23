@@ -313,7 +313,7 @@ const typescript = collection.find<User>({
 console.log("antigo", antigo);
 console.log("moderno", moderno);
 console.log("typescript", typescript);
-// Em todos os exemplos o resultado segue o mesmo:
+// Resultado:
     [
         {
             "nome": "User_1",
@@ -410,12 +410,29 @@ const output2 = collection.update<User>({
 
 console.log("output1: ", output1);
 console.log("output2: ", output2);
-// Em todos os exemplos o output segue o mesmo:
+// Resultado:
     [
         {
             "nome": "User_1",
             "admin": true,
             "_zid": 1
+        }
+    ]
+//
+
+const output3 = collection.update({
+    where: obj => obj.nome === 'User_2',
+    values: { idade: 20 }
+})
+
+console.log("output3: ", output3);
+// Resultado:
+    [
+        {
+            "nome": "User_2",
+            "admin": false,
+            "idade": 20,
+            "_zid": 2
         }
     ]
 //
