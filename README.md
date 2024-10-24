@@ -1,6 +1,6 @@
 # KlauzDB [![NPM version](https://img.shields.io/npm/v/klauz-db.svg?style=flat-square)](https://www.npmjs.com/package/klauz-db)
 
-KlauzDB é um banco de dados orientado a collections projetado para oferecer uma solução leve e eficiente para a persistência de dados locais. Utilizando arquivos .json como seu meio de armazenamento, ele permite que desenvolvedores manipulem dados estruturados de maneira intuitiva e acessível.
+KlauzDB é um banco de dados orientado a Collections projetado para oferecer uma solução leve e eficiente para a persistência de dados locais. Utilizando arquivos .json como seu meio de armazenamento, ele permite que desenvolvedores manipulem dados estruturados de maneira intuitiva e acessível.
 
 Com suporte a operações CRUD *(Criar, Ler, Atualizar e Deletar)*, o sistema permite a categorização de dados em coleções, facilitando a realização de consultas de forma ágil e adaptável. A estrutura em JSON garante que os dados sejam facilmente legíveis e interoperáveis com diversas linguagens de programação.
 
@@ -25,7 +25,7 @@ Instalação via yarn: `yarn add klauz-db`
 
 ## 🏗️ Usabilidade
 
-No começo da sua aplicação, importe o pacote "klauz-db" e defina o path principal para suas collections:
+No começo da sua aplicação, importe o pacote "klauz-db" e defina o path principal para armazenamento dos dados:
 
 ```javascript
 const { KlauzDB } = require('klauz-db')
@@ -71,7 +71,7 @@ Instância própria da Collection, habilitando acesso as funções de banco de d
 #### Exemplo
 ```js
 const kz = new KlauzDB({
-    path: './'
+    path: './db'
 })
 
 const collection = kz.createCollection('coll-teste')
@@ -86,7 +86,7 @@ console.log(collection.information)
 //
 ```
 
-Com sua collection criada agora você já tem acesso as seguintes funções de db:
+Com sua Collection criada agora você já tem acesso as seguintes funções de db:
 ```js
 .add()
 .addMany()
@@ -99,7 +99,7 @@ Com sua collection criada agora você já tem acesso as seguintes funções de d
 <br>
 
 ### add
-Adiciona um novo objeto dentro da collection.
+Adiciona um novo objeto dentro da Collection.
 
 #### Syntax
 ```js
@@ -131,7 +131,7 @@ console.log("output: ", output);
 <br>
 
 ### addMany
-Adiciona um novo array de objetos dentro da collection.
+Adiciona um novo array de objetos dentro da Collection.
 
 #### Syntax
 ```js
@@ -421,6 +421,8 @@ console.log("output2: ", output2);
     ]
 //
 
+
+// Update inserindo nova informação
 const output3 = collection.update({
     where: obj => obj.nome === 'User_2',
     values: { idade: 20 }
