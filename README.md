@@ -477,6 +477,27 @@ collection.addMany([
 
 // Deletando dados
 
+console.log("collection.findAll(): ", collection.findAll());
+// Consulta antes:
+    [
+        {
+            "nome": "User_1",
+            "admin": false,
+            "_zid": 1
+        },
+        {
+            "nome": "User_2",
+            "admin": false,
+            "_zid": 2
+        },
+        {
+            "nome": "User_3",
+            "admin": false,
+            "_zid": 3
+        }
+    ]
+//
+
 // JavaScript:
 collection.delete({
     where: obj => obj.nome === 'User_1'
@@ -491,7 +512,7 @@ collection.delete<User>({
 
 
 console.log("collection.findAll(): ", collection.findAll());
-// Resultado:
+// Consulta depois:
     [
         {
             "nome": "User_2",
