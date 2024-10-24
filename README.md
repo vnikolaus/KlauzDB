@@ -530,3 +530,7 @@ console.log("collection.findAll(): ", collection.findAll());
 //
 ```
 <br>
+
+## ✒️ Autores
+
+* **Desenvolvedor** - *Trabalho & Documentação* - [Victor Nikolaus](https://github.com/vnikolaus)
