@@ -531,6 +531,59 @@ console.log("collection.findAll(): ", collection.findAll());
 ```
 <br>
 
+### reset
+Apaga todos os dados inseridos na Collection.
+
+#### Syntax
+```js
+collection.reset()
+```
+
+#### Retorno
+Não possui retorno;
+
+#### Exemplo
+```js
+// Adicionando dados
+collection.addMany([
+    {
+        nome: 'User_1',
+        admin: false
+    },
+    {
+        nome: 'User_2',
+        admin: false
+    }
+])
+
+
+// Resetando os dados
+
+console.log("collection.findAll(): ", collection.findAll());
+// Consulta antes:
+    [
+        {
+            "nome": "User_1",
+            "admin": false,
+            "_zid": 1
+        },
+        {
+            "nome": "User_2",
+            "admin": false,
+            "_zid": 2
+        }
+    ]
+//
+
+collection.reset()
+
+console.log("collection.findAll(): ", collection.findAll());
+// Consulta depois:
+    []
+//
+```
+<br>
+
 ## ✒️ Autores
 
 * **Desenvolvedor** - *Trabalho & Documentação* - [Victor Nikolaus](https://github.com/vnikolaus)
