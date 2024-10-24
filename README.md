@@ -1,9 +1,11 @@
 <!-- # KlauzDB [![NPM version](https://img.shields.io/npm/v/klauz-db.svg?style=flat-square)](https://www.npmjs.com/package/klauz-db) -->
 # KlauzDB [![NPM version]]
 
-KlauzDB é um banco de dados orientando a **Collections**, que tem como proposta ser extremamente simples de se usar e rápido nas operações CRUD, pois utiliza o armazenamento local da máquina para persistir os dados, e não necessita de nenhuma conexão externa para seu funcionamento.
+KlauzDB é um banco de dados orientado a collections projetado para oferecer uma solução leve e eficiente para a persistência de dados locais. Utilizando arquivos .json como seu meio de armazenamento, ele permite que desenvolvedores manipulem dados estruturados de maneira intuitiva e acessível.
 
-Ideal para testes automatizados, vídeo-aulas ou aplicações com um grau menor de complexidade na persistência dos dados.
+Com suporte a operações CRUD (Criar, Ler, Atualizar e Deletar), o sistema permite a categorização de dados em coleções, facilitando a realização de consultas de forma ágil e adaptável. A estrutura em JSON garante que os dados sejam facilmente legíveis e interoperáveis com diversas linguagens de programação.
+
+Ideal para aplicações que exigem uma solução simples e eficaz de armazenamento, este banco de dados é perfeito para protótipos, projetos de pequeno a médio porte, testes automatizados e ambientes de desenvolvimento, proporcionando agilidade no gerenciamento de informações.
 <br>
 
 * [🌱 Instalação](#-Instalação)
