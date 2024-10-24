@@ -507,7 +507,7 @@ collection.delete({
 // Typescript:
 type User = { nome: string, admin: boolean };
 collection.delete<User>({
-    where: obj => obj.nome === 'User_1'
+    where: obj => obj._zid === 1
 })
 
 
