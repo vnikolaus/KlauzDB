@@ -491,7 +491,7 @@ collection.delete<User>({
 
 
 console.log("collection.findAll(): ", collection.findAll());
-// Em todos os exemplos o resultado segue o mesmo:
+// Resultado:
     [
         {
             "nome": "User_2",
