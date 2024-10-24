@@ -498,6 +498,7 @@ console.log("collection.findAll(): ", collection.findAll());
     ]
 //
 
+
 // JavaScript:
 collection.delete({
     where: obj => obj.nome === 'User_1'
