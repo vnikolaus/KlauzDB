@@ -586,6 +586,30 @@ console.log("collection.findAll(): ", collection.findAll());
 ```
 <br>
 
+### drop
+Deleta o arquivo .json criado para a Collection.
+
+#### Syntax
+```js
+collection.drop()
+```
+
+#### Retorno
+Não possui retorno;
+
+#### Exemplo
+```js
+// Criando Collection
+const kz = new KlauzDB({
+    path: '.'
+})
+
+const collection = kz.createCollection('teste') // arquivo .json criado
+
+collection.drop() // arquivo .json deletado
+```
+<br>
+
 ## ✒️ Autores
 
 * **Desenvolvedor** - *Trabalho & Documentação* - [Victor Nikolaus](https://github.com/vnikolaus)
