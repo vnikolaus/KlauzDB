@@ -349,15 +349,6 @@ const users = await db.createCollection('users')
 const allUsers = await users.findAll()
 ```
 
-## Desenvolvimento
-
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run build
-```
-
 ## Autor
 
 Victor Nikolaus - [GitHub](https://github.com/vnikolaus)
