@@ -1,615 +1,363 @@
 # KlauzDB [![NPM version](https://img.shields.io/npm/v/klauz-db.svg?style=flat-square)](https://www.npmjs.com/package/klauz-db)
 
-KlauzDB é um banco de dados orientado a Collections projetado para oferecer uma solução leve e eficiente para a persistência de dados locais. Utilizando arquivos .json como seu meio de armazenamento, ele permite que desenvolvedores manipulem dados estruturados de maneira intuitiva e acessível.
+KlauzDB é um banco de dados local orientado a collections, simples e leve, com persistência em arquivos JSON.
 
-Com suporte a operações CRUD *(Criar, Ler, Atualizar e Deletar)*, o sistema permite a categorização de dados em coleções, facilitando a realização de consultas de forma ágil e adaptável. A estrutura em JSON garante que os dados sejam facilmente legíveis e interoperáveis com diversas linguagens de programação.
+Ele foi pensado para protótipos, automações, testes, CLIs, aplicações locais e projetos pequenos que precisam persistir dados estruturados sem configurar um banco externo.
 
-Ideal para aplicações que exigem uma solução simples e eficaz de armazenamento, este banco de dados é perfeito para protótipos, projetos de pequeno a médio porte, testes automatizados e ambientes de desenvolvimento, proporcionando agilidade no gerenciamento de informações.
-<br>
-
-* [🌱 Instalação](#-Instalação)
-* [🏗️ Usabilidade](#%EF%B8%8F-Usabilidade)
-* [📖 Docs](#-Documentação)
-<!-- * [📚 Examples](#-examples) -->
-<!-- * [❓ FAQ](#-faq) -->
-<!-- * [⏱️ Changelog](./CHANGELOG.md) -->
-
-## 🌱 Instalação
+## Instalação
 
 ```bash
-# instalação local (recomendado)
-npm install klauz-db --save
+npm install klauz-db
 ```
 
-Instalação via yarn: `yarn add klauz-db`
+## Usabilidade
 
-## 🏗️ Usabilidade
+ESM:
 
-No começo da sua aplicação, importe o pacote "klauz-db" e defina o path principal para armazenamento dos dados:
-
-```javascript
-const { KlauzDB } = require('klauz-db')
-
-const kz = new KlauzDB({
-    path: '{db_path}'
-})
-```
-
-ES6:
-
-```javascript
+```ts
 import { KlauzDB } from 'klauz-db'
 
-const kz = new KlauzDB({
-    path: '{db_path}'
-})
-```
-
-Feito isso, você já pode criar suas Collections.
-<br>
-
-## 📖 Documentação
-
-KlauzDB expõe apenas uma função:
-
-* `createCollection`
-
-### createCollection()
-Habilita uma nova instância Collection, e cria seu arquivo .json para persistência dos dados.
-
-#### Syntax
-```js
-kz.createCollection(nomeCollection)
-```
-
-#### Parâmetros
-`nomeCollection: string`<br><br>Nome utilizado para criação de uma nova Collection e seu arquivo de persistência de dados;
-
-#### Retorno
-Instância própria da Collection, habilitando acesso as funções de banco de dados;
-
-#### Exemplo
-```js
-const kz = new KlauzDB({
+const db = new KlauzDB({
     path: './db'
 })
 
-const collection = kz.createCollection('coll-teste')
-
-console.log(collection.information)
-// Resultado:
-    {
-        "collection_name": "coll-teste",
-        "created_at": "2024-08-25T22:41:57.416Z",
-        "last_interaction": "2024-08-25:41:57.416Z",
-    }
-//
+const users = await db.createCollection('users')
 ```
 
-Com sua Collection criada agora você já tem acesso as seguintes funções de db:
+CommonJS:
+
 ```js
-.add()
-.addMany()
-.update()
-.delete()
-.findAll()
-.find()
-.reset()
+const { KlauzDB } = require('klauz-db')
+
+async function main() {
+    const db = new KlauzDB({
+        path: './db'
+    })
+
+    const users = await db.createCollection('users')
+}
+
+main()
 ```
-<br>
+
+O arquivo da collection é criado automaticamente no diretório informado:
+
+```txt
+db/.users.json
+```
+
+## Documentação
+
+KlauzDB expõe a classe `KlauzDB`.
+
+### createCollection
+
+Cria ou carrega uma collection.
+
+```ts
+const collection = await db.createCollection('users')
+```
+
+Parâmetros:
+
+```ts
+collectionName: string
+```
+
+Retorno:
+
+```ts
+Promise<Collection>
+```
+
+Exemplo:
+
+```ts
+const users = await db.createCollection('users')
+const info = await users.information
+
+console.log(info)
+```
+
+Saída:
+
+```json
+{
+    "collection_name": "users",
+    "created_at": "2026-05-21T20:00:00.000Z",
+    "updated_at": "2026-05-21T20:00:00.000Z"
+}
+```
+
+## Collection API
+
+Todas as operações que acessam disco são assíncronas.
+
+```ts
+await collection.add(...)
+await collection.addMany(...)
+await collection.findAll(...)
+await collection.find(...)
+await collection.update(...)
+await collection.delete(...)
+await collection.reset()
+await collection.drop()
+```
 
 ### add
-Adiciona um novo objeto dentro da Collection.
 
-#### Syntax
-```js
-collection.add(valor)
-```
+Adiciona um registro na collection.
 
-#### Parâmetros
-`valor: { key: value }` *(obrigatório)*<br><br>Objeto chave-valor utilizado para inserir um único registro dentro da Collection;
-
-#### Retorno
-Objeto adicionado já com as novas propriedades criadas pelo banco de dados;
-
-#### Exemplo
-```js
-const output = collection.add({
-    nome: 'User_1',
+```ts
+const user = await users.add({
+    name: 'Victor',
     admin: true
 })
-
-console.log("output: ", output);
-// Resultado:
-    {
-        "nome": "User_1",
-        "admin": true
-        "_zid": 1
-    }
-//
 ```
-<br>
+
+Retorno:
+
+```json
+{
+    "name": "Victor",
+    "admin": true,
+    "_zid": 1
+}
+```
+
+O campo `_zid` é controlado pelo KlauzDB. Se enviado pelo usuário, será ignorado.
 
 ### addMany
-Adiciona um novo array de objetos dentro da Collection.
 
-#### Syntax
-```js
-collection.addMany(valor)
-```
+Adiciona múltiplos registros em lote.
 
-#### Parâmetros
-`valor: [{ key: value }, { key: value }]` *(obrigatório)*<br><br>Array utilizado para inserir diversos registros dentro da Collection;
-
-#### Retorno
-Array de objetos adicionados já com as novas propriedades criadas pelo banco de dados;
-
-#### Exemplo
-```js
-const output = collection.addMany([
+```ts
+const output = await users.addMany([
     {
-        nome: 'User_1',
+        name: 'Victor',
         admin: true
     },
     {
-        nome: 'User_2',
+        name: 'Giovanna',
         admin: false
     }
 ])
-
-console.log("output: ", output);
-// Resultado:
-    [
-        {
-            "nome": "User_1",
-            "admin": true,
-            "_zid": 1
-        },
-        {
-            "nome": "User_2",
-            "admin": false,
-            "_zid": 2
-        }
-    ]
-//
 ```
-<br>
+
+Retorno:
+
+```json
+[
+    {
+        "name": "Victor",
+        "admin": true,
+        "_zid": 1
+    },
+    {
+        "name": "Giovanna",
+        "admin": false,
+        "_zid": 2
+    }
+]
+```
 
 ### findAll
-Retorna todos os dados contidos dentro da Collection.
 
-#### Syntax
-```js
-const optionsFindAll = {
-    hideInfo: Array<string>
-}
-collection.findAll(optionsFindAll?)
+Retorna todos os registros da collection.
+
+```ts
+const allUsers = await users.findAll()
 ```
 
-#### Parâmetros
-`optionsFindAll.hideInfo: Array<string>` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
+Com `hideInfo`:
 
-#### Retorno
-Todos os objetos persistidos na Collection;
-
-#### Exemplo
-```js
-// Adicionando dados
-collection.addMany([
-    {
-        nome: 'User_1',
-        admin: false
-    },
-    {
-        nome: 'User_2',
-        admin: false
-    }
-])
-
-
-// Consultando dados
-
-// Sem hideInfo
-const output1 = collection.findAll()
-
-console.log("output1", output1);
-// Resultado:
-    [
-        {
-            "nome": "User_1",
-            "admin": false,
-            "_zid": 1
-        },
-                {
-            "nome": "User_2",
-            "admin": false,
-            "_zid": 2
-        }
-    ]
-//
-
-
-// Com hideInfo
-const output2 = collection.findAll({
-    hideInfo: ['admin'] // Esconde as informações indicadas do retorno;
-})
-
-console.log("output2", output2);
-// Resultado:
-    [
-        {
-            "nome": "User_1",
-            "_zid": 1
-        },
-        {
-            "nome": "User_2",
-            "_zid": 2
-        }
-    ]
-//
-```
-<br>
-
-### find
-Retorna dados específicos que estão contidos na Collection.
-
-#### Syntax
-```js
-const optionsFind = {
-    where: (obj) => {},
-    hideInfo?: Array<string>
-}
-collection.find(optionsFind)
-```
-
-#### Parâmetros
-`optionsFind.where: function(obj) {}` *(obrigatório)*<br><br>Função callback que recebe como parâmetro os objetos contidos na Collection.<br>Seu retorno deve ser os objetos que serão consultados;<br><br>
-`optionsFind.hideInfo: Array<string>` *(opcional)*<br><br>Array contendo as informações que necessita esconder do retorno da função.<br><br>
-
-#### Retorno
-Objetos persistidos na Collection;
-
-#### Exemplo
-```js
-// Adicionando dados
-collection.addMany([
-    {
-        nome: 'User_1',
-        admin: true
-    },
-    {
-        nome: 'User_2',
-        admin: false
-    },
-        {
-        nome: 'User_3',
-        admin: false
-    }
-])
-
-
-// Consultando dados
-
-//Syntax Javascript antiga
-const antigo = collection.find({
-    where: function(obj) {
-        if (obj.admin === true) {
-            return obj
-        }
-    }
-})
-
-//Syntax Javascript moderna (recomendado)
-const moderno = collection.find({
-    where: obj => obj.admin === true
-})
-
-// Syntax Typescript:
-// Utiliza Generics para habilitar a tipagem dos objetos, incluindo a propriedade '_zid' como padrão.
-type User = { nome: string, admin: boolean };
-const typescript = collection.find<User>({
-    where: obj => obj.admin === true
-})
-
-console.log("antigo", antigo);
-console.log("moderno", moderno);
-console.log("typescript", typescript);
-// Resultado:
-    [
-        {
-            "nome": "User_1",
-            "admin": true,
-            "_zid": 1
-        }
-    ]
-//
-
-const output1 = collection.find({
-    where: obj => obj._zid > 2
-})
-
-console.log("output1", output1);
-// Resultado:
-    [
-        {
-            "nome": "User_3",
-            "admin": false,
-            "_zid": 3
-        }
-    ]
-//
-
-const output2 = collection.find({
-    where: obj => obj.admin === false,
+```ts
+const publicUsers = await users.findAll({
     hideInfo: ['admin', '_zid']
 })
-
-console.log("output2", output2);
-// Resultado:
-    [
-        {
-            "nome": "User_2",
-        },
-        {
-            "nome": "User_3",
-        }
-    ]
-//
 ```
-<br>
+
+`hideInfo` remove campos apenas do retorno. Os dados persistidos não são alterados.
+
+### find
+
+Retorna registros filtrados por callback.
+
+```ts
+type User = {
+    name: string
+    admin: boolean
+}
+
+const admins = await users.find<User>({
+    where: (user) => user.admin
+})
+```
+
+Com `hideInfo`:
+
+```ts
+const publicAdmins = await users.find<User>({
+    where: (user) => user.admin,
+    hideInfo: ['admin']
+})
+```
+
+O callback recebe o objeto com `_zid` tipado.
+
+```ts
+const user = await users.find<User>({
+    where: (user) => user._zid === 1
+})
+```
 
 ### update
-Altera um ou mais objetos dentro da Collection.
 
-#### Syntax
-```js
-const optionsUpdate = {
-    where: (obj) => {},
-    values: { key: value }
-}
-collection.update(optionsUpdate)
-```
+Atualiza todos os registros que passarem no callback `where`.
 
-#### Parâmetros
-`optionsUpdate.where: function(obj) {}` *(obrigatório)*<br><br>Função callback que recebe como parâmetro os objetos contidos na Collection.<br>Seu retorno deve ser os objetos que serão atualizados;<br><br>
-`optionsUpdate.values: { key: value }` *(obrigatório)*<br><br>Objeto chave-valor com os novos valores a serem atualizados;
-
-#### Retorno
-Array de objetos já com as novas alterações;
-
-#### Exemplo
-```js
-// Adicionando dados
-collection.addMany([
-    {
-        nome: 'User_1',
-        admin: false
-    },
-    {
-        nome: 'User_2',
+```ts
+const updated = await users.update<User>({
+    where: (user) => user.name === 'Victor',
+    values: {
         admin: false
     }
-])
+})
+```
 
+Retorno:
 
-// Alterando dados
+```json
+[
+    {
+        "name": "Victor",
+        "admin": false,
+        "_zid": 1
+    }
+]
+```
 
-// JavaScript:
-const output1 = collection.update({
-    where: obj => obj.nome === 'User_1',
-    values: { admin: true }
+O campo `_zid` não pode ser alterado por `update`.
+
+### delete
+
+Remove todos os registros que passarem no callback `where`.
+
+```ts
+await users.delete<User>({
+    where: (user) => user.admin === false
+})
+```
+
+Não possui retorno em caso de sucesso.
+
+### reset
+
+Remove todos os registros da collection, mantendo o arquivo da collection.
+
+```ts
+await users.reset()
+```
+
+### drop
+
+Remove o arquivo da collection.
+
+```ts
+await users.drop()
+```
+
+## Erros
+
+Métodos de CRUD retornam:
+
+```ts
+T | {
+    error: string
+    code: string
+}
+```
+
+Exemplo:
+
+```ts
+const output = await users.update<User>({
+    where: (user) => user.name === 'missing',
+    values: {
+        admin: true
+    }
 })
 
+if ('error' in output) {
+    console.log(output.code, output.error)
+}
+```
 
-// Typescript:
-type User = { nome: string, admin: boolean }
-const output2 = collection.update<User>({
-    where: (obj) => obj._zid === 1,
-    values: { admin: true }
-})
+Erros exportados:
 
+```ts
+import {
+    KlauzError,
+    KlauzValidationError,
+    KlauzStorageError,
+    KlauzNotFoundError
+} from 'klauz-db'
+```
 
-console.log("output1: ", output1);
-console.log("output2: ", output2);
-// Resultado:
-    [
+## Formato do arquivo
+
+Cada collection é salva como um JSON oculto:
+
+```json
+{
+    "collection_name": "users",
+    "created_at": "2026-05-21T20:00:00.000Z",
+    "updated_at": "2026-05-21T20:00:00.000Z",
+    "data": [
         {
-            "nome": "User_1",
+            "name": "Victor",
             "admin": true,
             "_zid": 1
         }
     ]
-//
-
-
-// Update inserindo nova informação
-const output3 = collection.update({
-    where: obj => obj.nome === 'User_2',
-    values: { idade: 20 }
-})
-
-console.log("output3: ", output3);
-// Resultado:
-    [
-        {
-            "nome": "User_2",
-            "admin": false,
-            "idade": 20,
-            "_zid": 2
-        }
-    ]
-//
-```
-<br>
-
-### delete
-Remove um ou mais objetos da Collection.
-
-#### Syntax
-```js
-const optionsDelete = {
-    where: (obj) => {}
 }
-collection.delete(optionsDelete)
 ```
 
-#### Parâmetros
-`optionsDelete.where: function(obj) {}` *(obrigatório)*<br><br>Função callback que recebe como parâmetro os objetos contidos na Collection.<br>Seu retorno deve ser os objetos que serão removidos;<br><br>
+## Migração de 0.5.x para 1.0.0
 
-#### Retorno
-Não possui retorno;
+Principais mudanças:
 
-#### Exemplo
-```js
-// Adicionando dados
-collection.addMany([
-    {
-        nome: 'User_1',
-        admin: false
-    },
-    {
-        nome: 'User_2',
-        admin: false
-    },
-    {
-        nome: 'User_3',
-        admin: false
-    }
-])
+- API de I/O agora é async.
+- `createCollection` agora deve ser usado com `await`.
+- `collection.information` agora retorna `Promise`.
+- `last_interaction` foi substituído por `updated_at`.
+- Arquivos antigos com `last_interaction` continuam sendo lidos.
+- `hideInfo` não altera mais os dados persistidos.
+- `_zid` é protegido contra insert/update manual.
+- `addMany` salva os dados em lote.
 
+Antes:
 
-// Deletando dados
-
-console.log("collection.findAll(): ", collection.findAll());
-// Consulta antes:
-    [
-        {
-            "nome": "User_1",
-            "admin": false,
-            "_zid": 1
-        },
-        {
-            "nome": "User_2",
-            "admin": false,
-            "_zid": 2
-        },
-        {
-            "nome": "User_3",
-            "admin": false,
-            "_zid": 3
-        }
-    ]
-//
-
-
-// JavaScript:
-collection.delete({
-    where: obj => obj.nome === 'User_1'
-})
-
-
-// Typescript:
-type User = { nome: string, admin: boolean };
-collection.delete<User>({
-    where: obj => obj._zid === 1
-})
-
-
-console.log("collection.findAll(): ", collection.findAll());
-// Consulta depois:
-    [
-        {
-            "nome": "User_2",
-            "admin": false,
-            "_zid": 2
-        },
-        {
-            "nome": "User_3",
-            "admin": false,
-            "_zid": 3
-        }
-    ]
-//
-```
-<br>
-
-### reset
-Apaga todos os dados inseridos na Collection.
-
-#### Syntax
-```js
-collection.reset()
+```ts
+const users = db.createCollection('users')
+const allUsers = users.findAll()
 ```
 
-#### Retorno
-Não possui retorno;
+Agora:
 
-#### Exemplo
-```js
-// Adicionando dados
-collection.addMany([
-    {
-        nome: 'User_1',
-        admin: false
-    },
-    {
-        nome: 'User_2',
-        admin: false
-    }
-])
-
-
-// Resetando os dados
-
-console.log("collection.findAll(): ", collection.findAll());
-// Consulta antes:
-    [
-        {
-            "nome": "User_1",
-            "admin": false,
-            "_zid": 1
-        },
-        {
-            "nome": "User_2",
-            "admin": false,
-            "_zid": 2
-        }
-    ]
-//
-
-collection.reset()
-
-console.log("collection.findAll(): ", collection.findAll());
-// Consulta depois:
-    []
-//
-```
-<br>
-
-### drop
-Deleta o arquivo .json criado para a Collection.
-
-#### Syntax
-```js
-collection.drop()
+```ts
+const users = await db.createCollection('users')
+const allUsers = await users.findAll()
 ```
 
-#### Retorno
-Não possui retorno;
+## Desenvolvimento
 
-#### Exemplo
-```js
-// Criando Collection
-const kz = new KlauzDB({
-    path: '.'
-})
-
-const collection = kz.createCollection('teste') // arquivo .json criado
-
-collection.drop() // arquivo .json deletado
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
 ```
-<br>
 
-## ✒️ Autores
+## Autor
 
-* **Desenvolvedor** - *Trabalho & Documentação* - [Victor Nikolaus](https://github.com/vnikolaus)
+Victor Nikolaus - [GitHub](https://github.com/vnikolaus)

@@ -1,6 +1,16 @@
-import { accessSync, constants, readFileSync, unlinkSync, writeFileSync } from "fs";
-import z from 'zod';
-import { errorMessage } from "./Error";
+import { join } from "node:path";
+import { errorMessage } from "./errors/error-message";
+import { KlauzStorageError } from "./errors/klauz-error";
+import {
+    collectionDataArraySchema,
+    collectionDataSchema,
+    deleteOptionsSchema,
+    findAllOptionsSchema,
+    findOptionsSchema,
+    parseSchema,
+    updateOptionsSchema
+} from "./schemas/collection-schemas";
+import { JsonStorage } from "./storage/json-storage";
 import {
     CollectionContent,
     CollectionData,
@@ -10,234 +20,233 @@ import {
     FindOptions,
     FindOptionsWithoutWhere,
     KzObject,
+    LegacyCollectionContent,
     Output,
     UpdateOptions,
     ZID
-} from "./Types";
+} from "./types";
 
 export class Collection {
     readonly #name: string
     readonly #path: string
+    readonly #storage: JsonStorage
     #content = {} as CollectionContent
 
     constructor(private readonly props: CollectionProps) {
         const fileExtension = '.json'
         const { path, name } = props
         this.#name = name
-        this.#path = `${path}/.${name}${fileExtension}`
-        this.#load()
+        this.#path = join(path, `.${name}${fileExtension}`)
+        this.#storage = new JsonStorage(this.#path)
     }
 
-    #load(): void {
-        try {
-            accessSync(this.#path, constants.F_OK)
-            const readedContent = readFileSync(this.#path, {
-                encoding: 'utf-8'
-            })
-            this.#content = JSON.parse(readedContent)
-        } catch (err) {
+    async init(): Promise<this> {
+        await this.#load()
+        return this
+    }
+
+    async #load(): Promise<void> {
+        if (!await this.#storage.exists()) {
             const content: CollectionContent = {
                 collection_name: this.#name,
                 created_at: new Date().toISOString(),
-                last_interaction: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
                 data: []
             }
             this.#content = content
-        } finally {
-            this.#save(this.#content)
+            await this.#save(this.#content)
+            return
+        }
+
+        try {
+            const content = await this.#storage.read<LegacyCollectionContent>()
+            this.#content = this.#normalizeContent(content)
+        } catch (err) {
+            throw new KlauzStorageError('Invalid collection JSON file', { cause: err })
         }
     }
 
-    #save(content: CollectionContent): void {
-        writeFileSync(this.#path, JSON.stringify(content, null, 2))
+    #normalizeContent(content: LegacyCollectionContent): CollectionContent {
+        const updatedAt = content.updated_at ?? content.last_interaction ?? content.created_at
+
+        return {
+            collection_name: content.collection_name,
+            created_at: content.created_at,
+            updated_at: updatedAt,
+            data: content.data
+        }
     }
 
-    #setCollectionDataValue(data: CollectionDataWithZID): void {
-        this.#load()
-        this.#content.last_interaction = new Date().toISOString()
+    async #save(content: CollectionContent): Promise<void> {
+        await this.#storage.write(content)
+    }
+
+    async #setCollectionDataValue(data: CollectionDataWithZID): Promise<void> {
+        this.#content.updated_at = new Date().toISOString()
         this.#content.data.push(data)
-        this.#save(this.#content)
+        await this.#save(this.#content)
     }
 
-    #setCollectionData(data: CollectionDataWithZID[]): void {
-        this.#load()
-        this.#content.last_interaction = new Date().toISOString()
+    async #setCollectionData(data: CollectionDataWithZID[]): Promise<void> {
+        this.#content.updated_at = new Date().toISOString()
         this.#content.data = data
-        this.#save(this.#content)
+        await this.#save(this.#content)
     }
 
-    #getCollectionData(): CollectionDataWithZID[] {
-        this.#load()
+    async #getCollectionData(): Promise<CollectionDataWithZID[]> {
+        await this.#load()
         return this.#content.data
     }
 
-    #getLastNumericId(): ZID {
-        this.#load()
-        const lastObject = this.#content.data.findLast((obj: CollectionDataWithZID) => typeof obj._zid === 'number')
+    #getLastNumericId(data = this.#content.data): ZID {
+        const lastObject = data.findLast((obj: CollectionDataWithZID) => typeof obj._zid === 'number')
         return lastObject?._zid ?? 0
     }
 
-    get information(): Omit<CollectionContent, 'data'> {
-        this.#load()
+    #removeInternalFields(data: CollectionData): CollectionData {
+        const safeData = { ...data }
+        Reflect.deleteProperty(safeData, '_zid')
+        return safeData
+    }
+
+    #cloneData(data: CollectionDataWithZID[]): CollectionDataWithZID[] {
+        return data.map((obj) => ({ ...obj }))
+    }
+
+    #hideInfo(data: CollectionDataWithZID[], hideInfo?: string[]): CollectionDataWithZID[] {
+        const output = this.#cloneData(data)
+
+        if (!hideInfo || hideInfo.length === 0) return output
+
+        for (const obj of output) {
+            for (const info of hideInfo) {
+                Reflect.deleteProperty(obj, info)
+            }
+        }
+
+        return output
+    }
+
+    get information(): Promise<Omit<CollectionContent, 'data'>> {
+        return this.#getInformation()
+    }
+
+    async #getInformation(): Promise<Omit<CollectionContent, 'data'>> {
+        await this.#load()
         return {
             collection_name: this.#content.collection_name,
             created_at: this.#content.created_at,
-            last_interaction: this.#content.last_interaction,
+            updated_at: this.#content.updated_at,
         }
     }
 
-    add(data: CollectionData): Output<CollectionDataWithZID> {
+    async add(data: CollectionData): Promise<Output<CollectionDataWithZID>> {
         try {
-            if (arguments.length > 1) throw TypeError('Invalid params')
-            const schema = z.record(z.string(), z.any(), { message: `Content must be a object. Use 'addMany' method, to insert a new array` })
-            const obj = schema.parse(data) as CollectionDataWithZID
+            if (arguments.length > 1) throw Error('Invalid params')
+            await this.#load()
+            const obj = this.#removeInternalFields(parseSchema(collectionDataSchema, data)) as CollectionDataWithZID
             const lastId = this.#getLastNumericId()
             Reflect.set(obj, '_zid', lastId + 1)
-            this.#setCollectionDataValue(obj)
-            return obj
+            await this.#setCollectionDataValue(obj)
+            return { ...obj }
         } catch (err) {
             return errorMessage(err)
         }
     }
 
-    addMany(data: CollectionData[]): Output<CollectionDataWithZID[]> {
+    async addMany(data: CollectionData[]): Promise<Output<CollectionDataWithZID[]>> {
         try {
-            if (arguments.length > 1) throw TypeError('Invalid params')
-            const schemaArray = z.array(z.record(z.string(), z.any()))
-            const schemaObject = z.record(z.string(), z.any())
-            const objs = schemaArray.parse(data) as CollectionDataWithZID[]
+            if (arguments.length > 1) throw Error('Invalid params')
+            await this.#load()
+            const objs = parseSchema(collectionDataArraySchema, data).map((obj) => this.#removeInternalFields(obj)) as CollectionDataWithZID[]
+            let lastId = this.#getLastNumericId()
+
             for (const obj of objs) {
-                schemaObject.parse(obj)
-                const lastId = this.#getLastNumericId()
-                Reflect.set(obj, '_zid', lastId + 1)
-                this.#setCollectionDataValue(obj)
+                Reflect.set(obj, '_zid', ++lastId)
             }
-            return objs
+
+            await this.#setCollectionData([
+                ...this.#content.data,
+                ...objs
+            ])
+
+            return this.#cloneData(objs)
         } catch (err) {
             return errorMessage(err)
         }
     }
 
-    findAll(options?: FindOptionsWithoutWhere): Output<CollectionDataWithZID[]> {
+    async findAll(options?: FindOptionsWithoutWhere): Promise<Output<CollectionDataWithZID[]>> {
         try {
-            if (arguments.length > 1) throw TypeError('Invalid params')
-            const collectionData = this.#getCollectionData()
-            const optionsSchema = z.object({
-                hideInfo: z.array(z.string()).optional(),
-            }).optional()
-            const zOpts = optionsSchema.parse(options) as FindOptionsWithoutWhere
-            if (zOpts && Object.values(zOpts).length > 0) {
-                const keys = Object.keys(zOpts) as Array<keyof FindOptionsWithoutWhere>
-                for (const key of keys) {
-                    if (!zOpts[key]) continue
-                    switch (key) {
-                        case 'hideInfo':
-                            const infos = zOpts.hideInfo as NonNullable<FindOptionsWithoutWhere['hideInfo']>
-                            infos.forEach((info: string) => {
-                                for (const obj of collectionData) {
-                                    if (!Reflect.has(obj, info)) continue
-                                    Reflect.deleteProperty(obj, info)
-                                }
-                            })
-                        break;
-                    }
-                }
-            }
-            return collectionData
+            if (arguments.length > 1) throw Error('Invalid params')
+            const collectionData = await this.#getCollectionData()
+            const zOpts = parseSchema(findAllOptionsSchema, options) as FindOptionsWithoutWhere
+            return this.#hideInfo(collectionData, zOpts?.hideInfo)
         } catch (err) {
             return errorMessage(err)
         }
     }
 
-    find<T>(options: FindOptions<KzObject<T>>): Output<CollectionDataWithZID[]> {
+    async find<T>(options: FindOptions<KzObject<T>>): Promise<Output<CollectionDataWithZID[]>> {
         try {
-            if (arguments.length > 1) throw TypeError('Invalid params')
-            const optionsSchema = z.object({
-                where: z.function(),
-                hideInfo: z.array(z.string()).optional(),
-            })
-            const { where, ...opts } = optionsSchema.parse(options) as FindOptions<T>
-            const collectionData = this.#getCollectionData() as any
+            if (arguments.length > 1) throw Error('Invalid params')
+            const { where, ...opts } = parseSchema(findOptionsSchema, options) as FindOptions<T>
+            const collectionData = await this.#getCollectionData() as any
+            const output = collectionData.filter((obj: KzObject<T>) => where.call(undefined, obj)) as CollectionDataWithZID[]
+            return this.#hideInfo(output, opts.hideInfo)
+        } catch (err) {
+            return errorMessage(err)
+        }
+    }
+
+    async update<T>(options: UpdateOptions<KzObject<T>>): Promise<Output<CollectionDataWithZID[]>> {
+        try {
+            if (arguments.length > 1) throw Error('Invalid params')
+            const { where, values } = parseSchema(updateOptionsSchema, options) as UpdateOptions<T>
+            const safeValues = this.#removeInternalFields(values ?? {})
+            const collectionData = await this.#getCollectionData() as any
             const output = [] as CollectionDataWithZID[]
             for (const obj of collectionData) {
                 if (where.call(undefined, obj)) {
-                    if (opts && Object.values(opts).length > 0) {
-                        const keys = Object.keys(opts) as Array<keyof FindOptions<T>>
-                        for (const key of keys) {
-                            switch (key) {
-                                case 'hideInfo':
-                                    const infos = opts.hideInfo as NonNullable<FindOptions<T>['hideInfo']>
-                                    infos.forEach((info: string) => Reflect.deleteProperty(obj, info))
-                                break;
-                            }
-                        }
-                    }
-                    output.push(obj)
-                } 
-            }
-            return output
-        } catch (err) {
-            return errorMessage(err)
-        }
-    }
-
-    update<T>(options: UpdateOptions<KzObject<T>>): Output<CollectionDataWithZID[]> {
-        try {
-            if (arguments.length > 1) throw TypeError('Invalid params')
-            const optionsSchema = z.object({
-                where: z.function(),
-                values: z.record(z.string(), z.any()),
-            })
-            const { where, values } = optionsSchema.parse(options) as UpdateOptions<T>
-            const collectionData = this.#getCollectionData() as any
-            const output = [] as CollectionDataWithZID[]
-            for (const obj of collectionData) {
-                if (where.call(undefined, obj)) {
-                    const tempId = obj._zid as ZID
-                    Reflect.deleteProperty(obj, '_zid')
                     Object.assign(obj, {
                         ...obj,
-                        ...values,
-                        _zid: tempId
+                        ...safeValues,
+                        _zid: obj._zid
                     })
-                    output.push(obj)
+                    output.push({ ...obj })
                 }
             }
             if (output.length === 0) throw Error('Data not found')
-            this.#setCollectionData(collectionData)
+            await this.#setCollectionData(collectionData)
             return output
         } catch (err) {
             return errorMessage(err)
         }
     }
 
-    delete<T>(options: DeleteOptions<KzObject<T>>): Output<void> {
+    async delete<T>(options: DeleteOptions<KzObject<T>>): Promise<Output<void>> {
         try {
-            if (arguments.length > 1) throw TypeError('Invalid params')
-            const optionsSchema = z.object({
-                where: z.function(),
-            })
-            const { where } = optionsSchema.parse(options) as DeleteOptions<T>
-            const collectionData = this.#getCollectionData() as any
+            if (arguments.length > 1) throw Error('Invalid params')
+            const { where } = parseSchema(deleteOptionsSchema, options) as DeleteOptions<T>
+            const collectionData = await this.#getCollectionData() as any
             const dataPostDelete = collectionData.filter((obj: KzObject<T>) => !where(obj)) as CollectionDataWithZID[]
             if (collectionData.length === dataPostDelete.length) return
-            this.#setCollectionData(dataPostDelete)
+            await this.#setCollectionData(dataPostDelete)
         } catch (err) {
             return errorMessage(err)
         }
     }
 
-    reset(): Output<void> {
+    async reset(): Promise<Output<void>> {
         try {
-            this.#load()
-            const arr = [] as CollectionDataWithZID[]
-            this.#setCollectionData(arr)
+            await this.#load()
+            await this.#setCollectionData([])
         } catch (err) {
             return errorMessage(err)
         }
     }
 
-    drop(): void {
-        unlinkSync(this.#path)
+    async drop(): Promise<void> {
+        await this.#storage.delete()
     }
 }

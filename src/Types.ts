@@ -9,8 +9,13 @@ export type CollectionProps = {
 export type CollectionContent = {
     collection_name: string,
     created_at: string,
-    last_interaction: string,
+    updated_at: string,
     data: Array<CollectionDataWithZID>
+}
+
+export type LegacyCollectionContent = Omit<CollectionContent, 'updated_at'> & {
+    updated_at?: string,
+    last_interaction?: string
 }
 
 export type CollectionData = Record<string, any>
@@ -23,7 +28,10 @@ export type KlauzProps = {
 }
 
 // Functions
-type ErrorPayload = { error: string }
+type ErrorPayload = {
+    error: string
+    code: string
+}
 export type Output<T> = T | ErrorPayload
 
 export type KzObject<T> = T & { _zid: ZID }

@@ -1,0 +1,51 @@
+{
+  "name": "klauz-db",
+  "version": "1.0.0",
+  "description": "Um banco de dados simples, para aplicacoes com um grau menor de complexidade",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file .env src/index.ts",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vnikolaus/KlauzDB.git"
+  },
+  "author": "Victor Nikolaus",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vnikolaus/KlauzDB/issues"
+  },
+  "homepage": "https://github.com/vnikolaus/KlauzDB#readme",
+  "files": [
+    "dist/**/*"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.14.11",
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "eslint": "^10.4.0",
+    "tsup": "^8.5.1",
+    "tsx": "4.16.2",
+    "typescript": "5.5.3",
+    "vitest": "^4.1.7"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "zod": "3.23.8"
+  }
+}
