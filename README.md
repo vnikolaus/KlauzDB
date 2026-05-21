@@ -322,7 +322,7 @@ Cada collection é salva como um JSON oculto:
 }
 ```
 
-## Migração de 0.5.x para 1.0.0
+## Migração de 0.5.x para 1.0.x
 
 Principais mudanças:
 
