@@ -1,6 +1,6 @@
 {
   "name": "klauz-db",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "Um banco de dados simples, para aplicacoes com um grau menor de complexidade",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
